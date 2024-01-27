@@ -75,7 +75,7 @@ class Aspect implements IPreContractCallJP {
 
                 if (execTimes && execTimes > limit) {
                     // exceed limits, not allow to execute
-                    throw new Error('exceed limit')
+                    return sys.revert('exceed limit')
                 }
 
                 execTimes += 1

@@ -1,5 +1,3 @@
-
-
 "use strict"
 const Web3 = require("@artela/web3");
 const fs = require("fs");
@@ -10,12 +8,12 @@ var argv = require('yargs')
     .string('aspectId')
     .string('gas')
     .string('abi')
+    .default('abi', './build/contract/Counter.abi')
     .argv;
 
 async function bind() {
     // init connection to Artela node
     const configJson = JSON.parse(fs.readFileSync('./project.config.json', "utf-8").toString());
-    const ASPECT_ADDR = "0x0000000000000000000000000000000000A27E14";
 
     let node = (argv.node) ? String(argv.node) : configJson.node;
     if (!node) {

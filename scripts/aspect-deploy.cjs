@@ -1,5 +1,5 @@
-
 "use strict"
+
 const Web3 = require("@artela/web3");
 const fs = require("fs");
 const argv = require('yargs')
@@ -9,6 +9,12 @@ const argv = require('yargs')
     .string('wasm')
     .string('properties')
     .array('joinPoints')
+    .default('properties', JSON.stringify([
+        { key: 'method', value: '0xd09de08a' },
+        { key: 'interval', value: 10 },
+        { key: 'limit', value: 1 },
+        { key: 'limitBy', value: 1 }]))
+    .default('joinPoints', ["PreContractCall"])
     .argv;
 
 async function deploy() {

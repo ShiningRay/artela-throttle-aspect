@@ -81,21 +81,26 @@ async function send() {
 
     let storageInstance = new web3.eth.Contract(abi, contractAddr);
     let instance = storageInstance.methods[method](...parameters);
-
-    let tx = {
-        from: sender.address,
-        to: contractAddr,
-        data: instance.encodeABI(),
-        gasPrice,
-        gas: !parseInt(argv.gas) | 4000000
+    let txCount = await web3.eth.getTransactionCount(sender.address);
+    let promises = []
+    for (let i = 0; i < 100; i++) {
+        console.log('#' + i)
+        let tx = {
+            from: sender.address,
+            to: contractAddr,
+            data: instance.encodeABI(),
+            gasPrice,
+            gas: !parseInt(argv.gas) | 4000000,
+            nonce: txCount + i
+        }
+        let signedTx = await web3.eth.accounts.signTransaction(tx, sender.privateKey);
+        console.log('call contract tx hash: ' + signedTx.transactionHash);
+        promises.push(web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+            .on('receipt', receipt => {
+                console.log(receipt);
+            }))
     }
-    let signedTx = await web3.eth.accounts.signTransaction(tx, sender.privateKey);
-    console.log('call contract tx hash: ' + signedTx.transactionHash);
-
-    await web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-        .on('receipt', receipt => {
-            console.log(receipt);
-        });
+    return Promise.all(promises)
 }
-send().then();
 
+send().then();
