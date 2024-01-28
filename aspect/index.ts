@@ -23,6 +23,7 @@ class Aspect implements IPreContractCallJP {
      * @param input
      */
     preContractCall(input: PreContractCallInput): void {
+        sys.log('THROTTLE start')
         let call: PreExecMessageInput
         let block: BlockInput
         if (!input.block) {
@@ -35,14 +36,24 @@ class Aspect implements IPreContractCallJP {
         }
         call = input.call!
         const interval = sys.aspect.property.get<u64>("interval")
-        const limit = sys.aspect.property.get<u64>('limit')
-        const limitBy = sys.aspect.property.get<u8>("limitBy")
-        const method = sys.aspect.property.get<string>('method')
-
-        const methodSig = parseCallMethod(call.data);
-        if (methodSig != method) {
+        sys.log("THROTTLE interval: " + interval.toString())
+        if (interval == 0) {
             return
         }
+
+        const limit = sys.aspect.property.get<u64>('limit')
+        const limitBy = sys.aspect.property.get<u8>("limitBy")
+        const method = sys.aspect.property.get<Uint8Array>('method')
+
+        sys.log("THROTTLE limit: " + limit.toString())
+        sys.log("THROTTLE limitBy: " + limitBy.toString())
+        sys.log("THROTTLE method: " + method.toString())
+        const methodSig = parseCallMethod(call.data);
+        sys.log("THROTTLE methodSig: " + methodSig)
+        if (methodSig != uint8ArrayToHex(method, '0x')) {
+            return
+        }
+
         const contractAddress = uint8ArrayToHex(call.to);
         let prefix: string;
         if (!call.from) {
@@ -57,18 +68,20 @@ class Aspect implements IPreContractCallJP {
             default:
                 prefix = `${contractAddress}:${methodSig}:`
         }
+        sys.log("THROTTLE prefix: " + prefix)
         const lastExecState = sys.aspect.mutableState.get<u64>(prefix + 'lastExecAt');
         if (!block.number) {
             throw new Error('missing from block number')
         }
-        const blockNumber = block.number;
 
         const lastExec = lastExecState.unwrap()
         const currentBlockNumber = block.number;
+        sys.log("THROTTLE lastExec: " + lastExec.toString())
+        sys.log("THROTTLE currentBlockNumber: " + currentBlockNumber.toString())
 
         if (lastExec) {
             if (currentBlockNumber - lastExec > interval) { // exceed interval, allow to execute
-                lastExecState.set(blockNumber)
+                lastExecState.set(currentBlockNumber)
             } else {
                 const execTimesState = sys.aspect.mutableState.get<u64>(prefix + 'execTimes');
                 let execTimes = execTimesState.unwrap() || 0
@@ -82,7 +95,7 @@ class Aspect implements IPreContractCallJP {
                 execTimesState.set(execTimes)
             }
         } else {
-            lastExecState.set(blockNumber)
+            lastExecState.set(currentBlockNumber)
         }
 
         // read the throttle config from the properties and decode

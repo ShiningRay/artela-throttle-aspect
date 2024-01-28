@@ -8,14 +8,19 @@ const argv = require('yargs')
     .string('gas')
     .string('wasm')
     .string('properties')
+    .string('method')
+    .number('interval')
+    .number('limit')
+    .number('limitBy')
     .array('joinPoints')
-    .default('properties', JSON.stringify([
-        { key: 'method', value: '0xd09de08a' },
-        { key: 'interval', value: 10 },
-        { key: 'limit', value: 1 },
-        { key: 'limitBy', value: 1 }]))
+    .default('limit', 1)
+    .default('limitBy', 0)
     .default('joinPoints', ["PreContractCall"])
     .argv;
+
+function uint8ArrayToHex(uint8Array, prefix = '0x') {
+    return prefix + Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 async function deploy() {
 
@@ -49,11 +54,15 @@ async function deploy() {
     web3.eth.accounts.wallet.add(sender.privateKey);
 
 
-    const propertiesJson = argv.properties
-    let properties = []
-    if (propertiesJson && propertiesJson !== 'undefined') {
-        properties = JSON.parse(propertiesJson);
-    }
+
+    let properties = [
+        { key: 'method', value: argv.method || '0xd09de08a' },
+        { key: 'interval', value: uint8ArrayToHex([argv.interval || 30]) },
+        { key: 'limit', value: uint8ArrayToHex([argv.limit]) },
+        { key: 'limitBy', value: uint8ArrayToHex([argv.limitBy]) }
+    ]
+    console.log(properties)
+
     const joinPointsJson = argv.joinPoints
     let joinPoints = []
     if (joinPointsJson && joinPointsJson !== 'undefined') {

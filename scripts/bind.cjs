@@ -14,6 +14,7 @@ var argv = require('yargs')
 async function bind() {
     // init connection to Artela node
     const configJson = JSON.parse(fs.readFileSync('./project.config.json', "utf-8").toString());
+    const ASPECT_ADDR = "0x0000000000000000000000000000000000A27E14";
 
     let node = (argv.node) ? String(argv.node) : configJson.node;
     if (!node) {
@@ -75,7 +76,7 @@ async function bind() {
         from: sender.address,
         data: bind.encodeABI(),
         gasPrice,
-        to: aspectId,
+        to: ASPECT_ADDR,
         gas: !parseInt(argv.gas) | 9000000
     }
 
