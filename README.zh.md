@@ -15,61 +15,51 @@ Team Member
 
 ## Problem Addressed
 
-In many scenarios, we do not want certain specific interfaces or methods to be frequently called, hence the concept of rate limiting is introduced. For example, in a web front-end, using a feature that triggers a search upon typing, to prevent users from frequently triggering the search, we can set a time interval. Within this interval, the user is only able to trigger the search once.
-
-Similarly, in blockchain contexts, there are comparable scenarios. For instance, in airdrops, we don't want users to frequently claim the airdrops. Therefore, we can set a time interval, during which a user can only claim the airdrop once.
+在很多场景中， 我们不希望某些特定的接口、方法被频繁调用， 因此提出了限流的概念。 例如， 在网页前端使用键入同时触发搜索的功能， 为了防止用户频繁触发搜索， 我们可以设置一个时间间隔， 在这个时间间隔内， 用户只能触发一次搜索。
+同样在区块链中， 也有类似的场景： 例如， 在空投中， 我们不希望用户频繁领取空投， 因此， 我们可以设置一个时间间隔在这个时间间隔内， 用户只能领取一次空投。
 
 ## Project Design
 
 ### Implementation
 
-By using Aspect's `mutableState` to store method call information, and checking the frequency of method calls in the `PreContractCall` aspect, if the frequency exceeds the limit, the transaction will be interrupted.
-
-Currently, the `FilterTx` aspect has not been implemented. If implemented, it would be possible to reject transactions that exceed the limit before they enter the memory pool. This would help reduce network stress and prevent DDoS attacks.
+通过 Aspect的 `mutableState` 储存方法的调用信息， 并在 `PreContractCall` 切面中检查方法调用的频率， 如果超过限制， 则打断交易。
+目前尚未实现 `FilterTx` 切面， 若实现可以实现在进入内存池之前就拒绝超限的交易， 以减轻网络压力， 防止 DDoS
 
 ## Value to the Artela Ecosystem
 
-The rate limiting feature can prevent DDoS attacks and protect network security. In scenarios such as airdrops, it can limit users from frequently claiming airdrops, thus protecting the interests of the project initiators.
+通过限流功能， 可以防止 DDoS 攻击， 保护网络安全。
+对于空投等场景， 可以限制用户频繁领取空投， 保护项目方的利益。
 
-## Compare to EVM Contract implementations
+## 与纯EVM实现的对比
 
-In the EVM (Ethereum Virtual Machine) ecosystem, rate limiting functionality can be implemented within contracts. However, if a contract has not initially considered rate limiting logic, upgrading the contract to include such functionality can be relatively cumbersome. By using Aspect, rate limiting features can be added to contracts without the need to modify the contract itself.
-
-
+EVM生态中可以在合约中实现限流功能， 但如果合约尚未考虑限流逻辑的话， 升级合约相对麻烦， 通过 Aspect 可以在不修改合约的情况下， 为合约增加限流功能。
 
 ## TODO & Future Plans
 
-1. Due to the current unimplemented state of Artela's `FilterTx` join point, if this could be implemented, it would be possible to reject transactions exceeding limits before they enter the Mempool, thereby reducing network stress and preventing DDoS attacks.
-
-2. This Aspect demonstration has already specified method signatures and related rate limiting configurations through `property` at deployment. However, in practical applications, we hope:
-   1. This Aspect can act as a common component, providing capabilities to different contracts.
-   2. The rate limiting configurations can be dynamically modified during runtime on the blockchain.
-   These objectives can be achieved through the `operation` interface.
-3. Add support for rate limiting based on time units.
-4. Support different rate limiting configurations for different methods.
-5. Support different rate limiting configurations for different addresses.
-
+1. 由于目前 Artela 的 FilterTx 切面尚未实装。 若能实现FilterTx切面， 则可以在交易进入 Mempool 之前就拒绝超限的交易， 以减轻网络压力， 防止 DDoS
+2. 本 Aspect 演示在部署时便已经通过`property`指定了方法签名和相关限流配置, 但是在实际应用中， 我们希望：
+  1. 本 Aspect 可以作为公共组件， 为不同的合约提供能力
+  2. 链上运行时动态修改限流配置
+  以上可以通过 `operation` 接口进行实现
+3. 增加对时间为单位的限流的支持
+4. 支持对于不同的方法进行不同的限流配置
+5. 支持对于不同的地址进行不同的限流配置
 
 ## How to Use
 
-Clone the repository from https://github.com/ShiningRay/artela-throttle-aspect
-
-```bash
-$ git clone https://github.com/ShiningRay/artela-throttle-aspect
-```
-
-First create an EoA
+先创建地址
 
 ```bash
 $ npm run account:create
 address:  0x6B70B03B608a19Bf1817848A4C8FFF844f0Be0fB
 ```
 
-Then, the script will create a private key file `privateKey.txt` in the project directory. You can also input your own private key. Record your address, and then you can apply for test coins in Artela's Discord faucet.
+然后脚本会在项目目录中创建私钥文件 `privateKey.txt`, 也可以填入自己的私钥。
+记录下自己的地址， 接着可以去 Artela 的 Discord 水龙头中申请测试币。
 
-## Compile and deploy Contract
+## 编译和部署合约
 
-If you are binding the Aspect to an existing contract, you can skip this step.
+如果对已有合约绑定Aspect， 可以跳过此步
 
 ```bash
 $ npm run contract:build
@@ -103,15 +93,15 @@ contract address:  0x9CEAE67580eB1d82B9CeEe53e57f137f66D87d83
 
 ```
 
-Remember the address of the last deployed contract for subsequent binding purposes.
+记住最后部署的合约地址， 以便后续绑定。
 
-### Compile Aspect
+### 编译 Aspect
 
 ```bash
 $ npm run aspect:build
 ```
 
-After the build is complete, run the deployment script.
+构建好之后， 运行部署脚本
 
 ```bash
 $ node scripts/aspect-deploy.cjs --method 0xd09de08a --interval 30 --limit 1
@@ -153,18 +143,18 @@ ret:  {
 == deploy aspectID == 0x9AE212EFbc8935D95DD266947cDb231571c1A09e
 ```
 
-The parameters for the deployment script are:
+其中参数为：
 
-- `method`: The method signature.
-- `interval`: The number of blocks in the rate limiting interval.
-- `limit`: The maximum number of times the method can be executed in each interval.
+- method 方法签名
+- interval 限流区块数量间隔
+- limit 每个间隔最多能执行的次数
 
-Remember the final `aspectID` for subsequent binding.
+记住最后的 aspectID， 以便后续绑定。
 
 
-# Binding Aspect
+# 绑定
 
-Run the `bind.cjs` script, and input the previously deployed contract address (or your own contract address) along with the AspectID.
+执行`bind。cjs`脚本， 并代入之前部署的合约地址 （或者自己的合约地址） 和AspectID
 
 ```bash
 $ node scripts/bind.cjs --contract <CONTRAT_ADDRESS> --aspectId <ASPECT_ID>
@@ -188,18 +178,18 @@ sending signed transaction...
 == aspect bind success ==
 ```
 
-Then, you can execute the script to query the Aspect bound to the contract to check whether the contract has been successfully bound.
+然后我们可以执行查询合约绑定的Aspect的脚本， 检查合约是否绑定成功
 
 ```bash
 $ node scripts/query.cjs --contract <CONTRAT_ADDRESS>
 bound aspects : 0x9AE212EFbc8935D95DD266947cDb231571c1A09e,1,1
 ```
 
-If the output displays the aforementioned AspectID, it indicates that the binding has been successful.
+输出中显示了上述的AspectID， 表示已经成功绑定
 
-## Testing
+## 测试
 
-The `scripts/batch-test.cjs` script will send contract transactions in batch simultaneously, which is used to test the rate limiting functionality.
+`scripts/batch-test.cjs` 会同时批量发送合约交易， 用以测试限流功能
 
 ```bash
 $ node scripts/batch-test.cjs
@@ -274,6 +264,6 @@ Error: Transaction has been reverted by the EVM:
 }
 ```
 
-If the script returns an error, it indicates that the rate limiter has successfully prevented the transaction from succeeding.
+脚本返回报错， 表示限流器成功阻止了交易的成功
 
 
