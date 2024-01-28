@@ -1,5 +1,6 @@
 "use strict"
 
+
 const Web3 = require("@artela/web3");
 const fs = require("fs");
 const argv = require('yargs')
@@ -18,10 +19,34 @@ const argv = require('yargs')
     .default('joinPoints', ["PreContractCall"])
     .argv;
 
+//将数值写入到视图中，获得其字节数组，大端字节序
+function getUint8Array(len, setNum) {
+    var buffer = new ArrayBuffer(len);  //指定字节长度
+    setNum(new DataView(buffer));  //根据不同的类型调用不同的函数来写入数值
+    return new Uint8Array(buffer); //创建一个字节数组，从缓存中拿取数据
+}
+//得到一个16位有符号整型的字节数组，大端字节序
+function getInt16Bytes(num) {
+    return getUint8Array(2, function (view) { view.setInt16(0, num); })
+}
 function uint8ArrayToHex(uint8Array, prefix = '0x') {
     return prefix + Array.from(uint8Array).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+
+function hexToUint8Array(hexString) {
+    if (hexString.length % 2 !== 0) {
+        throw new Error("Invalid hexString");
+    }
+
+    const bytes = new Uint8Array(hexString.length / 2);
+
+    for (let i = 0, j = 0; i < hexString.length; i += 2, j++) {
+        bytes[j] = parseInt(hexString.substr(i, 2), 16);
+    }
+
+    return bytes;
+}
 async function deploy() {
 
     const ARTELA_ADDR = "0x0000000000000000000000000000000000A27E14";
@@ -52,14 +77,13 @@ async function deploy() {
     let sender = web3.eth.accounts.privateKeyToAccount(pk.trim());
     console.log("from address: ", sender.address);
     web3.eth.accounts.wallet.add(sender.privateKey);
-
-
-
+    const textEncoder = new TextEncoder()
     let properties = [
-        { key: 'method', value: argv.method || '0xd09de08a' },
-        { key: 'interval', value: uint8ArrayToHex([argv.interval || 30]) },
-        { key: 'limit', value: uint8ArrayToHex([argv.limit]) },
-        { key: 'limitBy', value: uint8ArrayToHex([argv.limitBy]) }
+        { key: 'method', value: textEncoder.encode(argv.method || '0xd09de08a') },
+        { key: 'interval', value: getInt16Bytes(argv.interval || 30) },
+        { key: 'limit', value: getInt16Bytes(argv.limit) },
+        // { key: 'limitBy', value: ([argv.limitBy]) }
+        { key: 'limitBy', value: getInt16Bytes(0x1) }
     ]
     console.log(properties)
 

@@ -36,21 +36,23 @@ class Aspect implements IPreContractCallJP {
         }
         call = input.call!
         const interval = sys.aspect.property.get<u64>("interval")
-        sys.log("THROTTLE interval: " + interval.toString())
-        if (interval == 0) {
-            return
-        }
-
         const limit = sys.aspect.property.get<u64>('limit')
         const limitBy = sys.aspect.property.get<u8>("limitBy")
-        const method = sys.aspect.property.get<Uint8Array>('method')
-
+        const method = sys.aspect.property.get<string>('method')
+        // const interval = 30 as u64
+        // const limit = 1 as u64
+        // const limitBy = 1 as u8
+        // const method = '0xd09de08a'
+        sys.log("THROTTLE interval: " + interval.toString())
         sys.log("THROTTLE limit: " + limit.toString())
         sys.log("THROTTLE limitBy: " + limitBy.toString())
         sys.log("THROTTLE method: " + method.toString())
         const methodSig = parseCallMethod(call.data);
         sys.log("THROTTLE methodSig: " + methodSig)
-        if (methodSig != uint8ArrayToHex(method, '0x')) {
+        // if (interval == 0) {
+        //     return
+        // }
+        if (methodSig != method) {
             return
         }
 
@@ -88,6 +90,7 @@ class Aspect implements IPreContractCallJP {
 
                 if (execTimes && execTimes > limit) {
                     // exceed limits, not allow to execute
+                    sys.log('THRROTTLE exceed limit')
                     return sys.revert('exceed limit')
                 }
 
@@ -95,6 +98,7 @@ class Aspect implements IPreContractCallJP {
                 execTimesState.set(execTimes)
             }
         } else {
+            sys.log('THRROTTLE first exec')
             lastExecState.set(currentBlockNumber)
         }
 
