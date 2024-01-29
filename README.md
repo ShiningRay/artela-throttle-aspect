@@ -191,7 +191,7 @@ sending signed transaction...
 Then, you can execute the script to query the Aspect bound to the contract to check whether the contract has been successfully bound.
 
 ```bash
-$ node scripts/query.cjs --contract <CONTRAT_ADDRESS>
+$ node scripts/get-bound-aspect.cjs --contract <CONTRAT_ADDRESS>
 bound aspects : 0x9AE212EFbc8935D95DD266947cDb231571c1A09e,1,1
 ```
 
